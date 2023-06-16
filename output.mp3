@@ -1,0 +1,62 @@
+from gtts import gTTS
+from playsound import playsound
+import time
+from pydub import AudioSegment
+
+# Define the list of words you want to convert to speech in French
+word_list = [
+    "J'adore", "Tu adores", "Il adore", "Nous adorons", "Vous adorez", "Ils adorent",
+"J'adore la cuisine italienne.",
+"Tu adores les animaux.",
+"Elle adore chanter.",
+"Nous adorons les films d'horreur.",
+"Vous adorez voyager.",
+"Ils adorent faire du sport."
+]
+
+# Set the language to French
+language = 'fr'
+
+# Create an empty list to store the audio segments
+audio_segments = []
+
+# Iterate over each word in the list
+for i, word in enumerate(word_list):
+    # Check if the word is enclosed in quotes
+    if word.startswith('"') and word.endswith('"'):
+        # Remove the quotes from the word
+        word = word[1:-1]
+
+        # Add a longer pause for words enclosed in quotes
+        longer_pause_duration = 5  # Adjust the duration as needed
+        longer_pause = AudioSegment.silent(duration=longer_pause_duration * 1000)  # Convert to milliseconds
+        audio_segments.append(longer_pause)
+
+    # Create an instance of gTTS with the word and language
+    tts = gTTS(word, lang=language)
+
+    # Save the audio to a temporary file
+    audio_file = f"{word}.mp3"
+    tts.save(audio_file)
+
+    # Load the audio file as an audio segment
+    audio_segment = AudioSegment.from_file(audio_file, format='mp3')
+
+    # Append the audio segment to the list
+    audio_segments.append(audio_segment)
+
+    # Add a pause after the word, except for the last word
+    if i < len(word_list) - 1:
+        pause_duration = 3  # Adjust the duration as needed
+        pause = AudioSegment.silent(duration=pause_duration * 1000)  # Convert to milliseconds
+        audio_segments.append(pause)
+
+# Concatenate all audio segments into a single audio segment
+merged_audio = sum(audio_segments)
+
+# Save the merged audio as an MP3 file
+output_file = "output.mp3"
+merged_audio.export(output_file, format="mp3")
+
+# Play the merged audio file
+playsound(output_file)
