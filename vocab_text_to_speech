@@ -1,0 +1,54 @@
+from gtts import gTTS
+from pydub import AudioSegment
+from pydub.playback import play
+import os
+
+# Define the list of word pairs you want to convert to speech
+word_pairs = ["la tomate - die Tomate", "la carotte - die Karotte"]
+
+# Set the language codes for French and German
+french_language = 'fr'
+german_language = 'de'
+
+# Set the duration of the pause (in milliseconds) between each word pair
+pause_duration = 2000  # Adjust the duration as needed
+
+# Initialize an empty AudioSegment object to store the combined audio
+combined_audio = AudioSegment.silent(duration=0)
+
+# Iterate over each word pair in the list
+for i, word_pair in enumerate(word_pairs):
+    # Split the word pair into French and German words
+    french_word, german_word = word_pair.split(" - ")
+
+    # Create an instance of gTTS for the French word
+    french_tts = gTTS(french_word, lang=french_language)
+    french_audio_file = f"{french_word}.mp3"
+    french_tts.save(french_audio_file)
+
+    # Create an instance of gTTS for the German word
+    german_tts = gTTS(german_word, lang=german_language)
+    german_audio_file = f"{german_word}.mp3"
+    german_tts.save(german_audio_file)
+
+    # Load the French and German audio files using pydub
+    french_audio = AudioSegment.from_file(french_audio_file, format="mp3")
+    german_audio = AudioSegment.from_file(german_audio_file, format="mp3")
+
+    # Append the French and German audio to the combined audio
+    combined_audio += french_audio
+    combined_audio += german_audio
+
+    # Add a pause after each word pair except for the last one
+    if i < len(word_pairs) - 1:
+        combined_audio += AudioSegment.silent(duration=pause_duration)
+
+    # Delete the temporary audio files
+    os.remove(french_audio_file)
+    os.remove(german_audio_file)
+
+# Play the combined audio directly
+play(combined_audio)
+
+# Optionally, save the combined audio to a file
+combined_audio.export("combined_audio.mp3", format="mp3")
