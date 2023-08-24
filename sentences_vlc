@@ -1,0 +1,39 @@
+from gtts import gTTS
+from pydub import AudioSegment
+import os
+import time
+
+sentences = [
+    "Les canards aiment ce lac.",
+    "Cet arbre a des feuilles rouges.",
+    "Cette feuille est jaune.",
+    "Le lac est pur.",
+    "Notre étoile s'appelle soleil."
+]
+
+# Set the path for saving the concatenated audio file
+output_directory = os.path.expanduser("~/python")
+if not os.path.exists(output_directory):
+    os.makedirs(output_directory)
+
+output_path = os.path.join(output_directory, "output.mp3")
+
+# Generate individual audio segments and concatenate them
+all_audio_segments = []
+for sentence in sentences:
+    tts = gTTS(sentence, lang='fr')  # 'fr' is the language code for French
+    tts.save("temp.mp3")  # Temporary file for each sentence
+    audio_segment = AudioSegment.from_mp3("temp.mp3")
+    all_audio_segments.append(audio_segment)
+    os.remove("temp.mp3")
+
+concatenated_audio = AudioSegment.silent(duration=0)  # Create a silent segment to start
+
+for audio_segment in all_audio_segments:
+    concatenated_audio += audio_segment + AudioSegment.silent(duration=5000)  # 5-second pause
+
+# Save the concatenated audio
+concatenated_audio.export(output_path, format="mp3")
+
+# Play the generated audio file using VLC
+os.system(f"vlc {output_path}")
